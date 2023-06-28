@@ -1,0 +1,9 @@
+name: Duel
+version: '${project.version}'
+main: cn.star.duel.Main
+authors: [TheFlareStrar]
+description: 2333
+commands:
+  duel:
+    description: 233
+    usage:
