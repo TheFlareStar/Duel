@@ -1,2 +1,3 @@
-# Duel
-Minecraft Java Plugin
+# Duel - 角斗场插件
+
+迟点再写介绍233
