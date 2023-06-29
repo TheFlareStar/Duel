@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -25,18 +24,22 @@ import org.bukkit.Material;
 import org.bukkit.event.block.BlockBreakEvent;
 
 
+
 public class Main extends JavaPlugin implements Listener {
     private String worldName;
     private Location spawnLocation;
+    private int restorePercentage;
     private boolean enableParticles;
     private boolean enableBuild;
-    private int killCount;
+    private Map<Player, Integer> killCount;
     private Map<String, Integer> killStats;
+    int kills = 0;
 
     @Override
     public void onEnable() {
         loadConfig();
-        getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "[" + ChatColor.GOLD + "星之角斗场" + ChatColor.WHITE + "] " + ChatColor.AQUA + "已启用");
+        getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "[" + ChatColor.GOLD + "星之角斗场" + ChatColor.WHITE + "] " + ChatColor.AQUA + "已启用 " + ChatColor.WHITE + "  by" + ChatColor.GOLD + ChatColor.BOLD + " 耀星");
+        killCount = new HashMap<>();
         getServer().getPluginManager().registerEvents(this, this);
         File killFile = new File(getDataFolder(), "kill.yml");
         if (killFile.exists()) {
@@ -106,6 +109,17 @@ public class Main extends JavaPlugin implements Listener {
                     }
                     giveStandardKit(sender);
                     return true;
+                } else if (args[0].equalsIgnoreCase("mk")) {
+                    if (sender instanceof Player) {
+                        Player player = (Player) sender;
+                        if (!player.hasPermission("duel.use")) {
+                            player.sendMessage(ChatColor.RED + "你没有权限执行该命令！");
+                            return true;
+                        }
+                        int kills = getKillCount(player.getName());
+                        player.sendMessage(ChatColor.GREEN + "您已成功击杀 " + ChatColor.RED + kills + ChatColor.GREEN + " 名玩家");
+                        return true;
+                    }
                 }
             }
         }
@@ -126,14 +140,23 @@ public class Main extends JavaPlugin implements Listener {
         killStats.put(playerName, kills);
     }
 
+    private int getKillCount(String playerName) {
+        if (killStats.containsKey(playerName)) {
+            return killStats.get(playerName);
+        }
+        return 0;
+    }
+
     private void giveStandardKit(CommandSender sender) {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             FileConfiguration config = getConfig();
 
-            if (config.contains("standardkit.armor") && config.contains("standardkit.sword")) {
+            if (config.contains("standardkit.armor") && config.contains("standardkit.sword") && config.contains("standardkit.food") && config.contains("standardkit.bow")) {
                 Map<String, Object> armorConfig = config.getConfigurationSection("standardkit.armor").getValues(false);
                 int sword = config.getInt("standardkit.sword");
+                int food = config.getInt("standardkit.food");
+                int bow = config.getInt("standardkit.bow");
 
                 player.getInventory().clear();
 
@@ -160,6 +183,16 @@ public class Main extends JavaPlugin implements Listener {
                 ItemStack swordItem = getSwordItem(sword);
                 player.getInventory().setItem(0, swordItem);
 
+                ItemStack bowItem = getBowItem(bow);
+                player.getInventory().setItem(1, bowItem);
+
+                ItemStack foodItem = getFoodItem(food);
+                player.getInventory().setItem(2, foodItem);
+
+                if (bow == 1) {
+                    player.getInventory().setItem(9, new ItemStack(Material.ARROW, 16));
+                }
+
                 sender.sendMessage(ChatColor.GREEN + "已成功给予玩家标准装备！");
             } else {
                 sender.sendMessage(ChatColor.RED + "配置文件中未设置标准装备！");
@@ -172,7 +205,7 @@ public class Main extends JavaPlugin implements Listener {
     private ItemStack getArmorItem(Map<String, Object> armorConfig, String armorType) {
         ItemStack armorItem;
         int quality = (int) armorConfig.getOrDefault(armorType, 0);
-                                                                                                         //by TheFlareStar
+        //by TheFlareStar
         switch (armorType.toLowerCase()) {
             case "a":
                 switch (quality) {
@@ -242,7 +275,6 @@ public class Main extends JavaPlugin implements Listener {
                 armorItem = null;
                 break;
         }
-
         return armorItem;
     }
 
@@ -266,8 +298,47 @@ public class Main extends JavaPlugin implements Listener {
                 swordItem = new ItemStack(Material.AIR);
                 break;
         }
-
         return swordItem;
+    }
+
+    private ItemStack getFoodItem(int foodType) {
+        ItemStack foodItem;
+
+        switch (foodType) {
+            case 1:
+                foodItem = new ItemStack(Material.COOKIE,8);
+                break;
+            case 2:
+                foodItem = new ItemStack(Material.APPLE,8);
+                break;
+            case 3:
+                foodItem = new ItemStack(Material.BREAD,8);
+                break;
+            case 4:
+                foodItem = new ItemStack(Material.COOKED_BEEF,8);
+                break;
+            default:
+                foodItem = new ItemStack(Material.AIR);
+                break;
+        }
+        return foodItem;
+    }
+
+    private ItemStack getBowItem(int bowType) {
+        ItemStack bowItem;
+
+        switch (bowType) {
+            case 1:
+                bowItem = new ItemStack(Material.BOW);
+                break;
+            case 2:
+                bowItem = new ItemStack(Material.SHIELD);
+                break;
+            default:
+                bowItem = new ItemStack(Material.AIR);
+                break;
+        }
+        return bowItem;
     }
 
     @EventHandler
@@ -276,12 +347,14 @@ public class Main extends JavaPlugin implements Listener {
             Player killer = event.getEntity().getKiller();
 
             if (killer != null && killer.getWorld().getName().equalsIgnoreCase(worldName)) {
-                killer.setHealth(Objects.requireNonNull(killer.getAttribute(Attribute.GENERIC_MAX_HEALTH)).getValue());
+                killer.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 20, restorePercentage - 1));
                 killer.setFoodLevel(20);
 
-                killCount++;
+                kills = killCount.getOrDefault(killer, 0);
 
-                if (killCount >= 5) {
+                kills++;
+
+                if (kills >= 5) {
                     Bukkit.broadcastMessage(ChatColor.WHITE + "[" + ChatColor.RED + "连杀" + ChatColor.WHITE + "] " + ChatColor.AQUA + killer.getName() + ChatColor.WHITE + " 连续击杀了五名玩家。");
 
                     killer.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 10 * 20, 0));
@@ -298,8 +371,11 @@ public class Main extends JavaPlugin implements Listener {
                         }
                     }
 
-                    killCount = 0;
+                    kills = 0;
                 }
+
+                killCount.put(killer, kills);
+
                 updateKillStats(killer.getName());
             }
         }
@@ -316,7 +392,7 @@ public class Main extends JavaPlugin implements Listener {
                 player.teleport(spawnLocation);
             }
 
-            killCount = 0;
+            kills = 0;
         }
     }
 
@@ -340,11 +416,13 @@ public class Main extends JavaPlugin implements Listener {
 
         enableParticles = config.getBoolean("effect");
         enableBuild = config.getBoolean("build");
+        restorePercentage = config.getInt("restore");
 
         config.addDefault("world", "world");
-        config.addDefault("spawn", "0,0,0");
+        config.addDefault("spawn", "124,96,24");
+        config.addDefault("restore", 1);
         config.addDefault("effect", true);
-        config.getBoolean("build", false);
+        config.addDefault("build", false);
 
 
         killStats = new HashMap<>();
