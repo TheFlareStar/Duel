@@ -5,11 +5,11 @@
 连续击杀5人获得力量I药水效果10秒以及粒子效果，粒子效果可在配置文件选择是否开启。
 
 ## 指令 & 权限
-/duel sk 获取标准装备 (注意，是会直接覆盖背包内容的) | 相关权限 duel.use
-/duel kb 查看排行榜 | 相关权限 duel.use
-/duel kset [玩家] [数量] 设置玩家的击杀数 | 相关权限 duel.admin
-/duel reload 重载配置文件 | 相关权限 duel.admin
-拥有 duel.admin 权限的玩家可在角斗场build为false的情况下建筑
+- /duel sk 获取标准装备 (注意，是会直接覆盖背包内容的) | 相关权限 duel.use
+- /duel kb 查看排行榜 | 相关权限 duel.use
+- /duel kset [玩家] [数量] 设置玩家的击杀数 | 相关权限 duel.admin
+- /duel reload 重载配置文件 | 相关权限 duel.admin
+- 拥有 duel.admin 权限的玩家可在角斗场build为false的情况下建筑
 建议将权限 duel.use 给予玩家
  
 ## 配置文件
