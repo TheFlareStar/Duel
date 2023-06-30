@@ -57,7 +57,7 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         saveConfig();
-        getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "[" + ChatColor.GOLD + "星之角斗场" + ChatColor.WHITE + "] " + ChatColor.RED + "已禁用");
+        getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "[" + ChatColor.GOLD + "星之角斗场" + ChatColor.WHITE + "] " + ChatColor.RED + "已禁用" + ChatColor.WHITE + "  by" + ChatColor.GOLD + ChatColor.BOLD + " 耀星");
         saveKillStatsToFile();
     }
 
@@ -190,7 +190,7 @@ public class Main extends JavaPlugin implements Listener {
                 player.getInventory().setItem(2, foodItem);
 
                 if (bow == 1) {
-                    player.getInventory().setItem(9, new ItemStack(Material.ARROW, 16));
+                    player.getInventory().setItem(9, new ItemStack(Material.ARROW, 32));
                 }
 
                 sender.sendMessage(ChatColor.GREEN + "已成功给予玩家标准装备！");
@@ -205,7 +205,7 @@ public class Main extends JavaPlugin implements Listener {
     private ItemStack getArmorItem(Map<String, Object> armorConfig, String armorType) {
         ItemStack armorItem;
         int quality = (int) armorConfig.getOrDefault(armorType, 0);
-        //by TheFlareStar
+                                                                                                    //by TheFlareStar
         switch (armorType.toLowerCase()) {
             case "a":
                 switch (quality) {
