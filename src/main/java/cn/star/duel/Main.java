@@ -39,6 +39,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onEnable() {
         loadConfig();
         getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "[" + ChatColor.GOLD + "星之角斗场" + ChatColor.WHITE + "] " + ChatColor.AQUA + "已启用 " + ChatColor.WHITE + "  by" + ChatColor.GOLD + ChatColor.BOLD + " 耀星");
+        getServer().getConsoleSender().sendMessage(ChatColor.WHITE + "星の技术交流群 " + ChatColor.GREEN +"1095757683 " + ChatColor.WHITE + "欢迎加入闲聊！");
         killCount = new HashMap<>();
         getServer().getPluginManager().registerEvents(this, this);
         File killFile = new File(getDataFolder(), "kill.yml");
@@ -373,7 +374,6 @@ public class Main extends JavaPlugin implements Listener {
 
                     kills = 0;
                 }
-
                 killCount.put(killer, kills);
 
                 updateKillStats(killer.getName());
