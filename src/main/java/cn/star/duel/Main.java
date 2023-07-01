@@ -30,7 +30,6 @@ public class Main extends JavaPlugin implements Listener {
     private Location spawnLocation;
     private int restorePercentage;
     private boolean enableParticles;
-    private boolean enableBuild;
     private Map<Player, Integer> killCount;
     private Map<String, Integer> killStats;
     int kills = 0;
@@ -50,9 +49,7 @@ public class Main extends JavaPlugin implements Listener {
                 killStats.put(playerName, kills);
             }
         }
-        if (enableBuild) {
             getServer().getPluginManager().registerEvents(new BuildListener(), this);
-        }
     }
 
     @Override
@@ -82,7 +79,7 @@ public class Main extends JavaPlugin implements Listener {
                 if (args[0].equalsIgnoreCase("kb")) {
                     if (sender instanceof Player) {
                         Player player = (Player) sender;
-                        if (!player.hasPermission("duel.use")) {
+                        if (!player.hasPermission("duel.use") && !player.hasPermission("duel.admin")) {
                             player.sendMessage(ChatColor.RED + "你没有权限执行该命令！");
                             return true;
                         }
@@ -103,7 +100,7 @@ public class Main extends JavaPlugin implements Listener {
                 } else if (args[0].equalsIgnoreCase("sk")) {
                     if (sender instanceof Player) {
                         Player player = (Player) sender;
-                        if (!player.hasPermission("duel.use")) {
+                        if (!player.hasPermission("duel.use") && !player.hasPermission("duel.admin")) {
                             player.sendMessage(ChatColor.RED + "你没有权限执行该命令！");
                             return true;
                         }
@@ -113,7 +110,7 @@ public class Main extends JavaPlugin implements Listener {
                 } else if (args[0].equalsIgnoreCase("mk")) {
                     if (sender instanceof Player) {
                         Player player = (Player) sender;
-                        if (!player.hasPermission("duel.use")) {
+                        if (!player.hasPermission("duel.use") && !player.hasPermission("duel.admin")) {
                             player.sendMessage(ChatColor.RED + "你没有权限执行该命令！");
                             return true;
                         }
@@ -407,22 +404,22 @@ public class Main extends JavaPlugin implements Listener {
         if (spawnCoords.length == 3) {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
+
                 double x = Double.parseDouble(spawnCoords[0]);
                 double y = Double.parseDouble(spawnCoords[1]);
                 double z = Double.parseDouble(spawnCoords[2]);
                 spawnLocation = new Location(world, x, y, z);
+
             }
         }
 
         enableParticles = config.getBoolean("effect");
-        enableBuild = config.getBoolean("build");
         restorePercentage = config.getInt("restore");
 
         config.addDefault("world", "world");
         config.addDefault("spawn", "124,96,24");
         config.addDefault("restore", 1);
         config.addDefault("effect", true);
-        config.addDefault("build", false);
 
 
         killStats = new HashMap<>();
@@ -447,7 +444,9 @@ public class Main extends JavaPlugin implements Listener {
 
     private void updateKillStats(String playerName) {
         if (killStats.containsKey(playerName)) {
+
             int kills = killStats.get(playerName);
+
             killStats.put(playerName, kills + 1);
         } else {
             killStats.put(playerName, 1);
@@ -457,6 +456,7 @@ public class Main extends JavaPlugin implements Listener {
     private void showKillLeaderboard(CommandSender sender) {
         List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(killStats.entrySet());
         sortedList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
         int playersPerPage = 10;
         int startIndex = 0;
         int endIndex = Math.min(startIndex + playersPerPage, sortedList.size());
@@ -478,7 +478,7 @@ public class Main extends JavaPlugin implements Listener {
             World world = player.getWorld();
 
             if (world.getName().equalsIgnoreCase(worldName)) {
-                if (enableBuild && !player.hasPermission("duel.admin")) {
+                if (!player.hasPermission("duel.build") && !player.hasPermission("duel.admin")) {
                     event.setCancelled(true);
                     player.sendMessage(ChatColor.RED + "你没有权限破坏该世界的建筑！");
                 }
